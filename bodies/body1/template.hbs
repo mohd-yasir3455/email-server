@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      body{font-family:Arial,Helvetica,sans-serif;background:#f5f7fb;margin:0;padding:24px}
+      .card{max-width:600px;margin:0 auto;background:#fff;padding:24px;border-radius:8px}
+      .btn{display:inline-block;padding:10px 18px;background:#0b63ff;color:#fff;border-radius:6px;text-decoration:none}
+      .muted{color:#8898a6;font-size:13px}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Hello {{name}},</h2>
+      <p>Welcome to <strong>{{appName}}</strong> — we're excited to have you.</p>
+      <p style="text-align:center;margin:22px 0"><a class="btn" href="{{ctaUrl}}">Get started</a></p>
+      <p class="muted">If you didn't ask for this email, ignore it or contact {{supportEmail}}.</p>
+      <p class="muted" style="margin-top:18px">© {{year}} {{appName}}</p>
+    </div>
+  </body>
+</html>
