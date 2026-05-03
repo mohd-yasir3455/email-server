@@ -46,8 +46,15 @@ FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"..."}'
 FIREBASE_SERVICE_ACCOUNT_BASE64=base64-encoded-json
 
 # Option C: local file path
+FIREBASE_SERVICE_ACCOUNT_PATH=/absolute/path/to/serviceAccountKey.json
+
+# Option D: Google credentials path
 GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/serviceAccountKey.json
 ```
+
+For Render production deployments, use `FIREBASE_SERVICE_ACCOUNT_JSON` or
+`FIREBASE_SERVICE_ACCOUNT_BASE64`. Do not use a local machine path such as
+`/home/yasir/firebase-sa.json`, because that file does not exist inside Render.
 
 Optional project metadata:
 
