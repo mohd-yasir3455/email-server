@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://ns.hr-xml.org" version="1.0">
+    <xsl:template match="/">
+        <SOAP-ENV:Envelope xmlns="" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <SOAP-ENV:Header>
+                <AuthHeader xmlns="http://jobs.talemetry.com/">
+                    <Username>${param_cred_api_client_id}</Username>
+                    <Password>${param_cred_api_client_secret}</Password>
+                </AuthHeader>
+            </SOAP-ENV:Header>
+            <SOAP-ENV:Body>
+                <AddJobs xmlns="http://jobs.talemetry.com/">
+                    <JobDataFeed>
+                        <UserData>
+                            <FeedID>${param_usr_job_feed_id}</FeedID>
+                            <Action>POST</Action>
+                            <Source>orc_ats</Source>
+                            <SubSource>${param_sys_tp_id}</SubSource>
+                        </UserData>
+                        <PositionOpenings xmlns="http://ns.hr-xml.org">
+                            <xsl:for-each select="PositionOpenings/PositionOpening/UserArea">
+                                <PositionOpening>
+                                    <PositionPostings>
+                                        <PositionPosting>
+                                            <Id>
+                                                <IdValue><xsl:value-of select="IntegrationExternalID"/></IdValue>
+                                            </Id>
+                                            <Title><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,Title']"/></Title>
+                                            <xsl:if test="ApplyUrl and ApplyUrl != ''">
+                                           		<Link><xsl:value-of select="ApplyUrl"/></Link>
+                                            </xsl:if>
+                                        </PositionPosting>
+                                    </PositionPostings>
+                                    <PositionRecordInfo>
+                                        <Id>
+                                            <IdValue><xsl:value-of select="IntegrationGroupID"/></IdValue>
+                                        </Id>
+                                    </PositionRecordInfo>
+                                    <PositionProfile>
+                                        <xsl:variable name="talLclCode">
+                                            <xsl:call-template name="mapOrcToTalemetryLocaleCode">
+                                                <xsl:with-param name="code" select="IntegrationLocaleCode"/>
+                                            </xsl:call-template>
+                                        </xsl:variable>
+                                        <xsl:if test="$talLclCode != ''">
+                                            <xsl:attribute name="languageCode">
+                                                <xsl:value-of select="$talLclCode"/>
+                                            </xsl:attribute>
+                                        </xsl:if>
+                                        <ProfileId>
+                                            <IdValue><xsl:value-of select="IntegrationExternalID"/></IdValue>
+                                        </ProfileId>
+                                        <PositionDetail>
+                                            <PositionTitle><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,Title']"/></PositionTitle>
+                                            <xsl:choose>
+                                                <xsl:when test="LocationFields/IntegrationField[@name='location,LocationName']">
+                                                    <PhysicalLocation>
+                                                        <Id>
+                                                            <IdValue><xsl:value-of select="LocationFields/IntegrationField[@name='location,LocationId']"/></IdValue>
+                                                        </Id>
+                                                        <Name><xsl:value-of select="LocationFields/IntegrationField[@name='location,LocationName']"/></Name>
+                                                        <PostalAddress>
+                                                            <DeliveryAddress>
+                                                                <AddressLine><xsl:value-of select="substring-before(LocationFields/IntegrationField[@name='location,SingleLineAddress'],',')"/></AddressLine>
+                                                            </DeliveryAddress>
+                                                            <Municipality><xsl:value-of select="LocationFields/IntegrationField[@name='location,TownOrCity']"/></Municipality>
+                                                            <Region><xsl:value-of select="LocationFields/IntegrationField[@name='location,Region2']"/></Region>
+                                                            <CountryCode><xsl:value-of select="LocationFields/IntegrationField[@name='location,CountryCode']"/></CountryCode>
+                                                            <PostalCode><xsl:value-of select="LocationFields/IntegrationField[@name='location,PostalCode']"/></PostalCode>
+                                                        </PostalAddress>
+                                                    </PhysicalLocation>
+                                                </xsl:when>
+                                                <xsl:when test="LocationFields/IntegrationField[@name='location,GeographyName']">
+                                                    <PhysicalLocation>
+                                                        <Id>
+                                                            <IdValue><xsl:value-of select="LocationFields/IntegrationField[@name='location,GeographyNodeId']"/></IdValue>
+                                                        </Id>
+                                                        <Name><xsl:value-of select="LocationFields/IntegrationField[@name='location,GeographyName']"/></Name>
+                                                        <PostalAddress>
+                                                            <DeliveryAddress>
+                                                                <AddressLine></AddressLine>
+                                                            </DeliveryAddress>
+                                                            <Municipality><xsl:value-of select="LocationFields/IntegrationField[@name='location,TownOrCity']"/></Municipality>
+                                                            <Region><xsl:value-of select="LocationFields/IntegrationField[@name='location,Region2']"/></Region>
+                                                            <CountryCode><xsl:value-of select="LocationFields/IntegrationField[@name='location,CountryCode']"/></CountryCode>
+                                                        </PostalAddress>
+                                                    </PhysicalLocation>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <PhysicalLocation></PhysicalLocation>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                            <RemunerationPackage>
+                                                <BasePay baseInterval="Annually">
+                                                    <xsl:attribute name="currencyCode"><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,CompensationCurrency']"/></xsl:attribute>
+                                                    <BasePayAmountMin><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,MinimumSalary']"/></BasePayAmountMin>
+                                                    <BasePayAmountMax><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,MaximumSalary']"/></BasePayAmountMax>
+                                                </BasePay>
+                                            </RemunerationPackage>
+                                        </PositionDetail>
+                                        <FormattedPositionDescription>
+                                            <Name>Overview</Name>
+                                            <Value>
+                                                <xsl:choose>
+                                                    <xsl:when test="UseDescription = 'external'">
+                                                        <xsl:choose>
+                                                            <xsl:when test="UseHtmlDescription = 'useHtml'">
+                                                                <xsl:value-of select="ExternalDescriptionHTML"/>
+                                                            </xsl:when>
+                                                            <xsl:otherwise>
+                                                                <xsl:value-of select="ExternalDescription"/>
+                                                            </xsl:otherwise>
+                                                        </xsl:choose>
+                                                    </xsl:when>
+                                                    <xsl:otherwise>
+                                                        <xsl:choose>
+                                                            <xsl:when test="UseHtmlDescription = 'useHtml'">
+                                                                <xsl:value-of select="InternalDescriptionHTML"/>
+                                                            </xsl:when>
+                                                            <xsl:otherwise>
+                                                                <xsl:value-of select="InternalDescription"/>
+                                                            </xsl:otherwise>
+                                                        </xsl:choose>
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
+                                            </Value>
+                                        </FormattedPositionDescription>
+                                        <xsl:if test="UseResponsibilityAndQualification = 'true'">
+                                    <FormattedPositionDescription>
+                                        <xsl:if test="ExternalResponsibilityHTML != '' or ExternalResponsibility != '' or InternalResponsibilityHTML != '' or InternalResponsibility != ''">
+                                        <Name>Responsibilities</Name>
+                                        <Value>
+                                            <xsl:choose>
+                                                <xsl:when test="UseDescription = 'external'">
+                                                    <xsl:choose>
+                                                        <xsl:when test="UseHtmlDescription = 'useHtml'">
+                                                            <xsl:value-of select="ExternalResponsibilityHTML"/>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <xsl:value-of select="ExternalResponsibility"/>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <xsl:choose>
+                                                        <xsl:when test="UseHtmlDescription = 'useHtml'">
+                                                            <xsl:value-of select="InternalResponsibilityHTML"/>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <xsl:value-of select="InternalResponsibility"/>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                        </Value>
+                                        </xsl:if>
+                                    </FormattedPositionDescription>
+                                    <FormattedPositionDescription>
+                                        <xsl:if test="ExternalQualificationHTML != '' or ExternalQualification != '' or InternalQualificationHTML != '' or InternalQualification != ''">
+                                        <Name>Qualifications</Name>
+                                        <Value>
+                                            <xsl:choose>
+                                                <xsl:when test="UseDescription = 'external'">
+                                                    <xsl:choose>
+                                                        <xsl:when test="UseHtmlDescription = 'useHtml'">
+                                                            <xsl:value-of select="ExternalQualificationHTML"/>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <xsl:value-of select="ExternalQualification"/>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <xsl:choose>
+                                                        <xsl:when test="UseHtmlDescription = 'useHtml'">
+                                                            <xsl:value-of select="InternalQualificationHTML"/>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <xsl:value-of select="InternalQualification"/>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                        </Value>
+                                        </xsl:if>
+                                    </FormattedPositionDescription>
+                                        </xsl:if>
+                                        <PositionDateInfo>
+                                            <StartDate><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,InternalPublishedJobStartDate']"/></StartDate>
+                                            <EndDate><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,InternalPublishedJobEndDate']"/></EndDate>
+                                        </PositionDateInfo>
+                                        <UserArea>
+                                            <ProfileId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ProfileId']"/></ProfileId>
+                                            <CompensationCurrency><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,CompensationCurrency']"/></CompensationCurrency>
+                                            <MinimumSalary><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,MinimumSalary']"/></MinimumSalary>
+                                            <MaximumSalary><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,MaximumSalary']"/></MaximumSalary>
+                                            <InternalContactName><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,InternalContactName']"/></InternalContactName>
+                                            <InternalContactEmail><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,InternalContactEmail']"/></InternalContactEmail>
+                                            <ExternalContactName><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ExternalContactName']"/></ExternalContactName>
+                                            <ExternalContactEmail><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ExternalContactEmail']"/></ExternalContactEmail>
+                                            <EmployerInternalDescriptionId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,EmployerInternalDescriptionId']"/></EmployerInternalDescriptionId>
+                                            <EmployerExternalDescriptionId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,EmployerExternalDescriptionId']"/></EmployerExternalDescriptionId>
+                                            <RecruitingOrganizationInternalDescriptionId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,RecruitingOrganizationInternalDescriptionId']"/></RecruitingOrganizationInternalDescriptionId>
+                                            <RecruitingOrganizationExternalDescriptionId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,RecruitingOrganizationExternalDescriptionId']"/></RecruitingOrganizationExternalDescriptionId>
+                                            <InternalPublishedJobStatus><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,InternalPublishedJobStatus']"/></InternalPublishedJobStatus>
+                                            <ExternalPublishedJobStatus><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ExternalPublishedJobStatus']"/></ExternalPublishedJobStatus>
+                                            <RecruitmentTeam>
+                                                <Members>
+                                                    <Member>
+                                                        <MemberType>Recruiter</MemberType>
+                                                        <MemberId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,RecruiterId']"/></MemberId>
+                                                        <MemberName/>
+                                                        <Primary>Y</Primary>
+                                                    </Member>
+                                                    <Member>
+                                                        <MemberType>HiringManager</MemberType>
+                                                        <MemberId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,HiringManagerId']"/></MemberId>
+                                                        <MemberName/>
+                                                    </Member>
+                                                </Members>
+                                            </RecruitmentTeam>
+                                            <xsl:choose>
+                                                <xsl:when test="UseDescription != ''">
+                                                    <ExternalJob>
+                                                        <FormattedPositionDescription>
+                                                            <xsl:choose>
+                                                                <xsl:when test="UseHtmlDescription = 'useHtml'">
+                                                                    <xsl:value-of select="ExternalDescriptionHTML"/>
+                                                                </xsl:when>
+                                                                <xsl:otherwise>
+                                                                    <xsl:value-of select="ExternalDescription"/>
+                                                                </xsl:otherwise>
+                                                            </xsl:choose>
+                                                        </FormattedPositionDescription>
+                                                    </ExternalJob>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <InternalJob>
+                                                        <FormattedPositionDescription>
+                                                            <xsl:choose>
+                                                                <xsl:when test="UseHtmlDescription = 'useHtml'">
+                                                                    <xsl:value-of select="InternalDescriptionHTML"/>
+                                                                </xsl:when>
+                                                                <xsl:otherwise>
+                                                                    <xsl:value-of select="InternalDescription"/>
+                                                                </xsl:otherwise>
+                                                            </xsl:choose>
+                                                        </FormattedPositionDescription>
+                                                    </InternalJob>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                        </UserArea>
+                                    </PositionProfile>
+                                    <UserArea>
+                                        <Category><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,DepartmentId']"/></Category>
+                                        <JobOpenDate><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,CreationDate']"/></JobOpenDate>
+                                        <RecruitingType><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,RecruitingType']"/></RecruitingType>
+                                        <TemplateId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,TemplateId']"/></TemplateId>
+                                        <PipelineRequisition><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,PipelineRequisition']"/></PipelineRequisition>
+                                        <PipelineRequisitionId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,PipelineRequisitionId']"/></PipelineRequisitionId>
+                                        <StateId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,StateId']"/></StateId>
+                                        <StateName><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,StateName']"/></StateName>
+                                        <PhaseId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,PhaseId']"/></PhaseId>
+                                        <PhaseName><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,PhaseName']"/></PhaseName>
+                                        <PositionId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,PositionId']"/></PositionId>
+                                        <UnlimitedOpenings><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,UnlimitedOpenings']"/></UnlimitedOpenings>
+                                        <NumberOfOpenings><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,NumberOfOpenings']"/></NumberOfOpenings>
+                                        <HiredCount><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,HiredCount']"/></HiredCount>
+                                        <ApplyWhenNotPosted><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ApplyWhenNotPosted']"/></ApplyWhenNotPosted>
+                                        <BusinessJustification><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,BusinessJustification']"/></BusinessJustification>
+                                        <DisplayInOrgChart><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,DisplayInOrgChart']"/></DisplayInOrgChart>
+                                        <OrganizationId><xsl:value-of select="OrganizationID"/></OrganizationId>
+                                        <JobFamilyId><xsl:value-of select="JobFamilyID"/></JobFamilyId>
+                                        <JobFunction><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,JobFunction']"/></JobFunction>
+                                        <BusinessUnitId><xsl:value-of select="BusinessUnitID"/></BusinessUnitId>
+                                        <DepartmentId><xsl:value-of select="DepartmentID"/></DepartmentId>
+                                        <PrimaryWorkLocationId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,PrimaryWorkLocationId']"/></PrimaryWorkLocationId>
+                                        <PrimaryLocationId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,PrimaryLocationId']"/></PrimaryLocationId>
+                                        <JobId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,JobId']"/></JobId>
+                                        <GradeId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,GradeId']"/></GradeId>
+                                        <LegalEmployerId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,LegalEmployerId']"/></LegalEmployerId>
+                                        <BudgetCurrency><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,BudgetCurrency']"/></BudgetCurrency>
+                                        <EmployeeReferralBonus><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,EmployeeReferralBonus']"/></EmployeeReferralBonus>
+                                        <SourcingBudget><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,SourcingBudget']"/></SourcingBudget>
+                                        <TravelBudget><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,TravelBudget']"/></TravelBudget>
+                                        <RelocationBudget><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,RelocationBudget']"/></RelocationBudget>
+                                        <PayFrequency><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,PayFrequency']"/></PayFrequency>
+                                        <WorkerType><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,WorkerType']"/></WorkerType>
+                                        <RegularOrTemporary><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,RegularOrTemporary']"/></RegularOrTemporary>
+                                        <ManagementLevel><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ManagementLevel']"/></ManagementLevel>
+                                        <FullTimeOrPartTime><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,FullTimeOrPartTime']"/></FullTimeOrPartTime>
+                                        <JobShift><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,JobShift']"/></JobShift>
+                                        <JobType><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,JobType']"/></JobType>
+                                        <EducationLevel><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,EducationLevel']"/></EducationLevel>
+                                        <InternalPublishedJobStartDate><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,InternalPublishedJobStartDate']"/></InternalPublishedJobStartDate>
+                                        <InternalPublishedJobEndDate><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,InternalPublishedJobEndDate']"/></InternalPublishedJobEndDate>
+                                        <ExternalPublishedJobStartDate><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ExternalPublishedJobStartDate']"/></ExternalPublishedJobStartDate>
+                                        <ExternalPublishedJobEndDate><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ExternalPublishedJobEndDate']"/></ExternalPublishedJobEndDate>
+                                        <ExternalApplicationFlowId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,ExternalApplicationFlowId']"/></ExternalApplicationFlowId>
+                                        <CandidateSelectionProcessId><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,CandidateSelectionProcessId']"/></CandidateSelectionProcessId>
+                                        <RequisitionLastModifiedDate><xsl:value-of select="IntegrationFields/IntegrationField[@name='requisition,RequisitionLastModifiedDate']"/></RequisitionLastModifiedDate>
+                                        <xsl:for-each select="CustomFields/IntegrationField">
+                                            <ORC_field>
+                                                <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
+                                                <xsl:attribute name="hier"><xsl:value-of select="@hier"/></xsl:attribute>
+                                                <xsl:value-of select="."/>
+                                            </ORC_field>
+                                        </xsl:for-each>
+                                    </UserArea>
+                                </PositionOpening>
+                            </xsl:for-each>
+                        </PositionOpenings>
+                    </JobDataFeed>
+                </AddJobs>
+            </SOAP-ENV:Body>
+        </SOAP-ENV:Envelope>
+    </xsl:template>
+    <!--
+  Function template.
+  -->
+  <xsl:template name="mapOrcToTalemetryLocaleCode">
+    <xsl:param name="code"/>
+    <xsl:variable name="fullCode" select="$code"/>
+    <xsl:variable name="langCode" select="substring($code, 1, 2)"/>
+    <xsl:choose>
+      <xsl:when test="$langCode = 'en'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'ar'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$fullCode = 'pt-BR'">pt-BR</xsl:when>
+      <xsl:when test="$fullCode = 'fr-CA'">fr-CA</xsl:when>
+      <xsl:when test="$langCode = 'cs'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'da'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'nl'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'fi'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'fr'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'de'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'he'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'hu'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'it'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'ja'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'ko'"></xsl:when>
+      <xsl:when test="$langCode = 'no'"></xsl:when>
+      <xsl:when test="$langCode = 'pl'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'Ro'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'ru'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$fullCode = 'zh-CN'">zh-CN</xsl:when>
+      <xsl:when test="$langCode = 'sk'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'es'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'sv'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$langCode = 'th'"><xsl:value-of select="$langCode"/></xsl:when>
+      <xsl:when test="$fullCode = 'zh-TW'">zh-TW</xsl:when>
+      <xsl:when test="$langCode = 'tr'"><xsl:value-of select="$langCode"/></xsl:when>
+
+      <xsl:otherwise></xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+</xsl:stylesheet>

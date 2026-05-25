@@ -15,14 +15,17 @@ const PORT = process.env.PORT || 3000;
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
 // Firebase helpers (require service account env or ADC).
-app.get('/firebase/status', async (req, res) => {
+async function handleFirebaseStatus(req, res) {
   try {
     const initialized = await firebase.init();
 
     if (!initialized) {
       return res.status(400).json({
         configured: false,
-        message: 'Set FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_BASE64, or GOOGLE_APPLICATION_CREDENTIALS.',
+        message:
+          'Set FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_BASE64, ' +
+          'FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY/FIREBASE_PROJECT_ID, ' +
+          'FIREBASE_SERVICE_ACCOUNT_PATH, or GOOGLE_APPLICATION_CREDENTIALS.',
       });
     }
 
@@ -34,7 +37,10 @@ app.get('/firebase/status', async (req, res) => {
     console.error('Firebase status error:', err && err.stack ? err.stack : err);
     return res.status(500).json({ configured: false, error: err.message });
   }
-});
+}
+
+app.get('/firebase/status', handleFirebaseStatus);
+app.post('/firebase/status', handleFirebaseStatus);
 
 app.get('/firebase/collections', async (req, res) => {
   try {

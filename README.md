@@ -45,16 +45,23 @@ FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"..."}'
 # Option B: base64-encoded JSON
 FIREBASE_SERVICE_ACCOUNT_BASE64=base64-encoded-json
 
-# Option C: local file path
+# Option C: individual env vars (recommended on Render)
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# Option D: local file path
 FIREBASE_SERVICE_ACCOUNT_PATH=/absolute/path/to/serviceAccountKey.json
 
-# Option D: Google credentials path
+# Option E: Google credentials path
 GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/serviceAccountKey.json
 ```
 
 For Render production deployments, use `FIREBASE_SERVICE_ACCOUNT_JSON` or
-`FIREBASE_SERVICE_ACCOUNT_BASE64`. Do not use a local machine path such as
-`/home/yasir/firebase-sa.json`, because that file does not exist inside Render.
+`FIREBASE_SERVICE_ACCOUNT_BASE64`, or the split env vars
+`FIREBASE_CLIENT_EMAIL` + `FIREBASE_PRIVATE_KEY` + `FIREBASE_PROJECT_ID`.
+Do not use a local machine path such as `/home/yasir/firebase-sa.json`,
+because that file does not exist inside Render.
 
 Optional project metadata:
 
