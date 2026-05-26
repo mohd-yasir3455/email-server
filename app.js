@@ -83,7 +83,7 @@ app.get('/firebase/:collection/:docId', async (req, res) => {
  * - `app` selects a builder module under `./bodies/<app>/index.js`.
  * - `to` overrides default recipient (optional).
  */
-app.post('/send', async (req, res) => {
+async function handleSend(req, res) {
   try {
     const { app: appName, to: overrideTo, data = {} } = req.body || {};
 
@@ -118,6 +118,9 @@ app.post('/send', async (req, res) => {
     console.error('Send error:', err && err.stack ? err.stack : err);
     return res.status(500).json({ success: false, message: 'Send failed', error: err && err.message ? err.message : String(err) });
   }
-});
+}
+
+app.post('/send', handleSend);
+app.post('/firebase/send', handleSend);
 
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
