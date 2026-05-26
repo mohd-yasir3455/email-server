@@ -10,7 +10,7 @@ async function sendMail({ from, to, subject, html, replyTo }) {
     console.log('Subject:', subject);
 
     const response = await resend.emails.send({
-      from: from || process.env.MAIL_FROM || 'onboarding@resend.dev',
+      from: 'onboarding@resend.dev',
       to,
       subject,
       html,
